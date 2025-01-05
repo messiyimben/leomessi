@@ -1,0 +1,28 @@
+-- Buildings içerisindeki tüm AutoCraftsmanBarn'ları al
+local barns = workspace:WaitForChild("Buildings"):GetChildren()
+
+-- Tüm barn'lar üzerinde döngü kur
+for _, barn in pairs(barns) do
+    -- Eğer bu bir AutoCraftsmanBarn ise
+    if barn.Name == "AutoCraftsmanBarn" then
+        -- Spots klasörünü al
+        local spotsFolder = barn:WaitForChild("AnimalContainer"):WaitForChild("Spots")
+        
+        -- 1'den 8'e kadar olan numaralar için döngü
+        for i = 1, 8 do
+            -- "i" numaralı Spotu kontrol et
+            local spot = spotsFolder:FindFirstChild(tostring(i))
+            if spot then
+                -- Bu spotta bir "Gate" varsa
+                local gate = spot:FindFirstChild("Gate")
+                if gate then
+                    local args = {
+                        [1] = gate
+                    }
+                    -- Remote'ı çalıştır
+                    game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTOpenBarnGate"):FireServer(unpack(args))
+                end
+            end
+        end
+    end
+end

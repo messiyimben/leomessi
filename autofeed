@@ -1,0 +1,135 @@
+-- Feeder ve DraggableObjects nesnelerini tanımlayın
+local draggableObjects = workspace:WaitForChild("DraggableObjects")
+local buildings = workspace:WaitForChild("Buildings")
+local remoteStorage = game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE")
+local evtRequestToCarry = remoteStorage:WaitForChild("EVTRequestToCarry")
+local evtFillFeeder = remoteStorage:WaitForChild("EVTFillFeeder")
+
+-- GUI oluşturma
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Feeder'ların durumlarını göstermek için GUI
+local feederStatusLabels = {}
+
+-- Feeder'ların durumlarını göstermek için TextLabel'lar oluşturuyoruz
+local feederCount = 3  -- 3 Feeder olduğunu varsayıyoruz
+for i = 1, feederCount do
+    local feederLabel = Instance.new("TextLabel")
+    feederLabel.Name = "Feeder" .. i
+    feederLabel.Size = UDim2.new(0, 200, 0, 50)
+    feederLabel.Position = UDim2.new(0, 10, 0, 10 + (i-1) * 60)  -- her feeder için farklı yer
+    feederLabel.BackgroundTransparency = 0.5
+    feederLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    feederLabel.TextSize = 20
+    feederLabel.Text = "Feeder " .. i .. ": "
+    feederLabel.Parent = screenGui
+    table.insert(feederStatusLabels, feederLabel)
+end
+
+-- Sayaç TextLabel'ı oluşturuluyor
+local timerLabel = Instance.new("TextLabel")
+timerLabel.Size = UDim2.new(0, 200, 0, 50)
+timerLabel.Position = UDim2.new(0, 10, 0, 10 + feederCount * 60)
+timerLabel.BackgroundTransparency = 0.5
+timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+timerLabel.TextSize = 20
+timerLabel.Text = "Next Check: 10:00"
+timerLabel.Parent = screenGui
+
+-- Boyutları kontrol etmek için fonksiyon
+local function isValidSize(part)
+    return part.Size.X == 6 and part.Size.Y == 1.5 and part.Size.Z == 6
+end
+
+-- AnimalFoodBox'ları rastgele seçen fonksiyon
+local function getRandomFeedBox()
+    local feedBoxes = {}
+    for _, object in pairs(draggableObjects:GetChildren()) do
+        if object.Name == "AnimalFoodBox" then
+            table.insert(feedBoxes, object)
+        end
+    end
+    return feedBoxes[math.random(1, #feedBoxes)] -- Rastgele bir Animal Food Box döndürür
+end
+
+-- Işınlama fonksiyonu
+local function teleportFeedBox(feedBox, targetPosition)
+    local westRotation = CFrame.Angles(0, math.rad(0), 0) -- Batı yönü (Y ekseninde 0 derece)
+    feedBox:SetPrimaryPartCFrame(CFrame.new(targetPosition) * westRotation) -- Işınlama işlemi
+end
+
+-- GUI'ye Feeder durumu eklemek
+local function updateFeederStatus(feederIndex, status)
+    local feederLabel = feederStatusLabels[feederIndex]
+    if status == "valid" then
+        feederLabel.Text = "Feeder " .. feederIndex .. ": +"
+        feederLabel.TextColor3 = Color3.fromRGB(0, 255, 0) -- Yeşil
+    else
+        feederLabel.Text = "Feeder " .. feederIndex .. ": -"
+        feederLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- Kırmızı
+    end
+end
+
+-- Feeder'ları kontrol eden ve remote işlemleri gerçekleştiren fonksiyon
+local function checkAndFillFeeders()
+    local actionTaken = false -- İşlem yapılıp yapılmadığını takip etmek için
+    local feedBoxTaken = false -- 1. remote için AnimalFoodBox'un alınıp alınmadığını kontrol etme
+
+    -- Buildings içindeki her nesneyi kontrol et
+    local feederIndex = 1
+    for _, building in pairs(buildings:GetChildren()) do
+        if building:FindFirstChild("Food") then
+            local foodPart = building.Food
+            
+            -- Boyutlar geçerli değilse, işlemleri başlat
+            if not isValidSize(foodPart) then
+                -- Sadece 1 kez AnimalFoodBox alacağız, bir kez çalışacak
+                if not feedBoxTaken then
+                    -- Rastgele AnimalFoodBox seç
+                    local feedBox = getRandomFeedBox()
+
+                    if feedBox then
+                        -- 1. remote ile AnimalFoodBox'u taşıma isteği gönder
+                        local args1 = { [1] = feedBox }
+                        evtRequestToCarry:FireServer(unpack(args1))
+                        
+                        -- Food parçasının yanındaki hedef pozisyonu ayarlıyoruz
+                        local targetPosition = foodPart.Position + Vector3.new(5, 0, 0) -- Food parçasının yanına (örneğin +5 birim X ekseninde)
+                        
+                        -- 2. remote ile AnimalFoodBox'u Food parçasının yanına ışınla
+                        teleportFeedBox(feedBox, targetPosition)
+
+                        -- 2. remote'u çalıştır
+                        local args2 = { [1] = building }
+                        evtFillFeeder:FireServer(unpack(args2))
+                        
+                        actionTaken = true
+                        feedBoxTaken = true -- Artık AnimalFoodBox alındı, tekrar almayacak
+                        updateFeederStatus(feederIndex, "invalid") -- Boyutlar yanlış, "-" göster
+                    end
+                end
+            else
+                -- Boyutlar doğruysa, "+" göster
+                updateFeederStatus(feederIndex, "valid")
+            end
+            feederIndex = feederIndex + 1
+        end
+    end
+
+    -- Eğer işlem yapıldıysa, tekrar et
+    if actionTaken then
+        wait(5) -- 5 saniye bekleyip işlemi tekrarlayın
+    end
+end
+
+-- Ana döngü
+while true do
+    checkAndFillFeeders()  -- Feeder'ları kontrol et ve işlemleri gerçekleştir
+    
+    -- 10 dakika bekle (600 saniye)
+    for timeLeft = 600, 0, -1 do
+        timerLabel.Text = "Next Check: " .. math.floor(timeLeft / 60) .. ":" .. string.format("%02d", timeLeft % 60)
+        wait(1) -- 1 saniye bekleyip sayaç güncellenir
+    end
+end

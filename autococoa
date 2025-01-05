@@ -1,0 +1,94 @@
+-- Araç ve oyuncu nesnelerini tanımlayın
+local vehicle = game.Workspace.Equipment.Oxbo3220 -- Aracın yolu
+
+-- Işınlanacak hedef koordinat ve rotalar
+local positions = {
+    {Vector3.new(-240, 6, 474), math.rad(90)},
+    {Vector3.new(-468, 6, 492), math.rad(270)},
+    {Vector3.new(-243, 6, 512), math.rad(90)},
+    {Vector3.new(-458, 6, 532), math.rad(270)},
+    {Vector3.new(-246, 6, 552), math.rad(90)},
+    {Vector3.new(-459, 6, 573), math.rad(270)},
+    {Vector3.new(-459, 6, 587), math.rad(270)}
+}
+
+-- VirtualInputManager servisini tanımlayın
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Araç ışınlama ve hareket simülasyonu işlevi
+local function teleportAndSimulateMovement(position, rotation)
+    -- Aracı belirtilen konuma ve rotaya ışınlayın
+    vehicle:SetPrimaryPartCFrame(CFrame.new(position) * CFrame.Angles(0, rotation, 0))
+
+    -- W tuşunu simüle et
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, game)
+    wait(7)  -- Tuşun basılması için kısa bir süre bekle
+end
+
+-- İlk ışınlamayı başlat
+for i, pos in ipairs(positions) do
+    teleportAndSimulateMovement(pos[1], pos[2])
+    wait(1)  -- Işınlama arasında 1 saniye bekle
+end
+
+-- Koşul kontrolü ve yeni ışınlama
+if workspace.Equipment.Oxbo3220.Configurations.Capacity == 100 then
+    -- Hedef pozisyona ışınlama ve 180 derece döndürme
+    local targetPosition = Vector3.new(-237, 6, 521)
+    local targetRotation = math.rad(180)
+
+    -- Eğer aracın PrimaryPart'ı doğru şekilde ayarlandıysa SetPrimaryPartCFrame kullanılabilir
+    if vehicle.PrimaryPart then
+        vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * CFrame.Angles(0, targetRotation, 0))
+    else
+        -- Eğer PrimaryPart ayarlanmamışsa, tüm parçaların CFrame'ini ayarlayın
+        for _, part in pairs(vehicle:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CFrame = CFrame.new(targetPosition) * CFrame.Angles(0, targetRotation, 0)
+            end
+        end
+    end
+end
+
+-- Son Işınlama ve Görev
+-- Araç ve oyuncu nesnelerini tanımlayın
+local targetPosition = Vector3.new(-236, 6, 521) -- Işınlanacak yeni hedef koordinat
+
+-- Batı yönü için rotayı tanımlayın (270 derece)
+local westRotation = CFrame.Angles(0, math.rad(0), 0) -- Batı yönü (Y ekseninde 270 derece)
+
+-- S tuşuna basma işlemi
+VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.S, false, game)
+wait(0.5)  -- S tuşuna basma işleminin tamamlanması için 0.5 saniye bekle
+
+-- Işınlama işlevi
+local function teleportVehicleToPositionWithRotation()
+    -- Aracın konumunu belirtilen hedef koordinatına ve batı yönüne ayarlayın
+    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * westRotation)
+end
+
+-- Işınlama işlemi ve sonrasında işlevi çalıştır
+teleportVehicleToPositionWithRotation()
+
+-- 0.01 saniye sonra belirtilen işlevi çalıştır
+wait(0.5)
+
+-- RemoteEvent'i doğru şekilde bulalım ve tetikleyelim
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remoteStorage = replicatedStorage:WaitForChild("_REMOTE_STORAGE")
+local evtDepositProduce = remoteStorage:WaitForChild("EVTDepositProduce")
+
+print("Event bulunuyor: ", evtDepositProduce)  -- Debug: Event bulundu mu?
+
+local args = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("Oxbo3220"),
+    [2] = workspace:WaitForChild("Buildings"):WaitForChild("ChocolateMilkFactory"):WaitForChild("DropOffs"):WaitForChild("DropOff"),
+    [3] = 100
+}
+
+-- Event tetikleniyor
+print("Event tetikleniyor...")  -- Debug: Event tetikleniyor
+evtDepositProduce:FireServer(unpack(args))
+
+wait(1)  -- Event sonrası bir bekleme süresi ekleyelim
+print("Event tetiklendi.")  -- Debug: Event başarıyla tetiklendi

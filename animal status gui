@@ -1,0 +1,123 @@
+-- GUI'yi hazırlama
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Panel için bir Frame ekliyoruz
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 0)  -- Başlangıçta gizli
+frame.Position = UDim2.new(0, 10, 0, 10)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.ClipsDescendants = true
+frame.Parent = screenGui
+
+-- Sekme butonu
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 200, 0, 30)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+toggleButton.Text = "Cow Production"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 18
+toggleButton.Font = Enum.Font.SourceSans
+toggleButton.Parent = screenGui
+
+-- Hareket ettirilebilir GUI için gerekli özellikler
+local isDragging = false
+local dragStartPos = Vector3.new()
+local dragOffset = Vector3.new()
+
+local function startDrag(input)
+    isDragging = true
+    dragStartPos = input.Position
+    dragOffset = frame.Position - input.Position
+end
+
+local function updateDrag(input)
+    if isDragging then
+        local delta = input.Position - dragStartPos
+        frame.Position = UDim2.new(0, delta.X + dragOffset.X, 0, delta.Y + dragOffset.Y)
+    end
+end
+
+local function stopDrag()
+    isDragging = false
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        startDrag(input)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateDrag(input)
+    end
+end)
+
+frame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        stopDrag()
+    end
+end)
+
+-- GUI'yi açıp kapama işlevi
+local isOpen = false
+
+toggleButton.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    -- Sekme animasyonu (açılma / kapanma)
+    if isOpen then
+        frame:TweenSize(UDim2.new(0, 200, 0, 500), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    else
+        frame:TweenSize(UDim2.new(0, 200, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    end
+end)
+
+-- Her cow için bir etiket oluşturma
+local function createCowLabel(cowName, position, sign)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 30)
+    label.Position = position
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 20
+    label.Font = Enum.Font.SourceSans
+    label.Text = cowName .. " " .. sign
+    label.TextStrokeTransparency = 0.8
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    
+    label.Parent = frame
+    return label
+end
+
+-- GUI'yi her saniye güncelleme
+while true do
+    local position = UDim2.new(0, 10, 0, 40)  -- Başlangıç pozisyonu biraz aşağıda
+
+    -- Tüm Cow'ları kontrol et
+    for _, animal in ipairs(workspace.Animals:GetChildren()) do
+        if animal:IsA("Model") and animal:FindFirstChild("Configurations") then
+            local production = animal.Configurations:FindFirstChild("Production")
+            
+            if production then
+                -- Production değeri 300 ve üzerindeyse + yeşil, altındaysa - kırmızı
+                local sign = production.Value >= 300 and "+" or "-"
+                local signColor = production.Value >= 300 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+                
+                -- Her Cow için bir etiket oluştur veya mevcut etiketi güncelle
+                local existingLabel = frame:FindFirstChild(animal.Name)
+                if existingLabel then
+                    -- Mevcut etiketi güncelle
+                    existingLabel.Text = animal.Name .. " " .. sign
+                    existingLabel.TextColor3 = signColor
+                else
+                    -- Yeni bir etiket oluştur
+                    createCowLabel(animal.Name, position, sign)
+                    position = UDim2.new(0, 10, 0, position.Y.Offset + 30)  -- Konumu güncelle
+                end
+            end
+        end
+    end
+    wait(1)  -- Her saniye GUI'yi güncelle
+end

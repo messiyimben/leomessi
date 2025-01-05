@@ -1,0 +1,30 @@
+while true do
+    -- Çiftlikteki tüm Cow'ları kontrol et
+    for _, animal in ipairs(workspace.Animals:GetChildren()) do
+        if animal:IsA("Model") and animal:FindFirstChild("Configurations") then
+            local production = animal.Configurations:FindFirstChild("Production")
+            
+            -- Production varsa, Hitbox'ı bul ve ayarla
+            if production then
+                local hitbox = animal:FindFirstChild("Hitbox")
+                
+                if hitbox then
+                    -- Hitbox'ı yarı saydam yap
+                    hitbox.Transparency = 0.5
+                    
+                    -- Production değerine göre hitbox rengini ayarla
+                    if production.Value >= 300 then
+                        hitbox.BrickColor = BrickColor.Green()
+                    else
+                        hitbox.BrickColor = BrickColor.Red()
+                    end
+                else
+                    print(animal.Name .. " için Hitbox bulunamadı.")
+                end
+            else
+                print(animal.Name .. " için Production değeri bulunamadı.")
+            end
+        end
+    end
+    wait(1)  -- Her saniye kontrol et
+end

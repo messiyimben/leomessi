@@ -1,0 +1,57 @@
+-- Hizmetleri tanımlayın
+local UserInputService = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Araç modelini bulma işlevi
+local function getVehicleFromDriveSeat()
+    local character = player.Character or player.CharacterAdded:Wait()
+    for _, descendant in pairs(workspace:GetDescendants()) do
+        if descendant:IsA("VehicleSeat") and descendant.Occupant and descendant.Occupant.Parent == character then
+            return descendant.Parent.Parent.Parent -- Seat'in üç üstteki modeli
+        end
+    end
+    return nil -- Araç bulunamadı
+end
+
+-- Işınlama işlevi
+local function teleportVehicleToPosition(vehicle, targetPosition)
+    if vehicle and vehicle:IsA("Model") and vehicle.PrimaryPart then
+        -- Batı yönü (örnek rotasyon)
+        local westRotation = CFrame.Angles(0, math.rad(0), 0)
+        vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * westRotation)
+        print("Araç ışınlandı: ", vehicle.Name, " -> ", targetPosition)
+    else
+        warn("Araç bulunamadı veya PrimaryPart ayarlanmamış!")
+    end
+end
+
+-- Ctrl tuşu algılama
+local isCtrlPressed = false
+
+UserInputService.InputBegan:Connect(function(input, isProcessed)
+    if isProcessed then return end -- Eğer başka bir GUI işliyorsa işlemi durdur
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        isCtrlPressed = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, isProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        isCtrlPressed = false
+    end
+end)
+
+-- Mouse Click algılama
+mouse.Button1Down:Connect(function()
+    if isCtrlPressed then
+        local targetPosition = mouse.Hit.Position -- Mouse'un tıkladığı dünya pozisyonu
+        local vehicle = getVehicleFromDriveSeat() -- Oyuncunun oturduğu aracı al
+
+        if vehicle then
+            teleportVehicleToPosition(vehicle, targetPosition)
+        else
+            warn("Araç bulunamadı!")
+        end
+    end
+end)

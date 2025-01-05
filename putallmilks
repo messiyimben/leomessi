@@ -1,0 +1,37 @@
+-- Yerel script
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- DraggableObjects içerisindeki tüm MilkContainer'ları bulma
+local draggableObjects = workspace.DraggableObjects:GetChildren()
+
+-- Truck referansları
+local mediumLiquidTruck = workspace:WaitForChild("Equipment"):WaitForChild("MediumLiquidTruck")
+local selectedTruck = workspace:WaitForChild("Equipment"):GetChildren()[11]  -- Diğer truck
+
+-- Seçilecek truck
+local truckToUse = mediumLiquidTruck  -- Varsayılan olarak MediumLiquidTruck seçildi
+-- Eğer başka bir truck'ı kullanmak isterseniz, şu satırı değiştirebilirsiniz:
+-- local truckToUse = selectedTruck
+
+-- MilkContainer'ları sırasıyla eline al ve remote event'leri çalıştır
+for _, object in ipairs(draggableObjects) do
+    if object.Name == "MilkContainer" and object:IsA("Model") then
+        -- Nesneyi oyuncuya ışınlat
+        object:SetPrimaryPartCFrame(character.HumanoidRootPart.CFrame)
+        
+        -- Remote Event ile nesneyi eline al
+        local args = {
+            [1] = object
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTRequestToCarry"):FireServer(unpack(args))
+        
+        -- Nesneyi taşıma işlemi
+        local truckArgs = {
+            [1] = truckToUse
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTFillLiquidCarrier"):FireServer(unpack(truckArgs))
+        
+        -- Burada nesnenin yok edilmesi gerekmiyor, sadece işlemleri yapıyoruz
+    end
+end

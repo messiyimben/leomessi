@@ -1,0 +1,32 @@
+-- Get all cows in the workspace
+local cows = workspace:WaitForChild("Animals"):GetChildren()
+-- Get both AutoCraftsmanBarn objects
+local barns = workspace:WaitForChild("Buildings"):GetChildren()
+
+-- Ensure we have exactly two barns
+local autoCraftsmanBarns = {}
+for _, barn in pairs(barns) do
+    if barn:IsA("Model") and barn.Name == "AutoCraftsmanBarn" then
+        table.insert(autoCraftsmanBarns, barn)
+    end
+end
+
+-- Check if there are two barns
+if #autoCraftsmanBarns ~= 2 then
+    warn("Expected exactly two AutoCraftsmanBarn models")
+    return
+end
+
+-- Loop through all cows
+for _, cow in pairs(cows) do
+    if cow:IsA("Model") and cow.Name == "Cow" then
+        -- Create the argument list for the current cow
+        local args = {
+            [1] = { cow }, -- Pass the current cow
+            [2] = autoCraftsmanBarns[(math.random(1, 2))] -- Randomly pick one barn
+        }
+
+        -- Fire the server event for each cow
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTHerdRequest"):FireServer(unpack(args))
+    end
+end

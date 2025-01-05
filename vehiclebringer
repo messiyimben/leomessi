@@ -1,0 +1,119 @@
+-- Oyuncu ve GUI'yi tanımlayın
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- GUI ekranı oluşturuluyor
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
+screenGui.Name = "VehicleTeleportGUI"
+
+-- Ana container için bir Frame oluşturuyoruz (ScrollFrame içinde olacak)
+local container = Instance.new("Frame")
+container.Size = UDim2.new(0, 250, 0, 200)  -- Genişlik 250, yükseklik 200 (daha uzun)
+container.Position = UDim2.new(1, -250, 0, 10)  -- Ekranın sağ üst köşesine yakın
+container.BackgroundTransparency = 0.5
+container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+container.Parent = screenGui
+
+-- ScrollFrame ekliyoruz (butonları sarmak için)
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, 0, 1, 0)  -- Container içinde tüm alanı kaplasın
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)  -- İçeriğin boyutuna göre ayarlanacak
+scrollFrame.ScrollBarThickness = 5
+scrollFrame.Parent = container
+
+-- Araba listesi (workspace.Equipment içindeki araçlar)
+local vehicles = {}
+for _, vehicle in pairs(game.Workspace.Equipment:GetChildren()) do
+    if vehicle:IsA("Model") then
+        table.insert(vehicles, vehicle)
+    end
+end
+
+-- Butonları oluşturma
+local buttonHeight = 50
+local buttonSpacing = 10
+local totalHeight = #vehicles * (buttonHeight + buttonSpacing)
+
+-- ScrollFrame'in boyutunu araç sayısına göre ayarlama
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+
+for i, vehicle in ipairs(vehicles) do
+    -- Ana buton (aracın ismini gösterecek)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 180, 0, buttonHeight)
+    button.Position = UDim2.new(0, 15, 0, (i - 1) * (buttonHeight + buttonSpacing))
+    button.Text = vehicle.Name
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = 14
+    button.Parent = scrollFrame
+
+    -- Kırmızı buton (ışınlama işlemi)
+    local redButton = Instance.new("TextButton")
+    redButton.Size = UDim2.new(0, 40, 0, buttonHeight)
+    redButton.Position = UDim2.new(0, 200, 0, (i - 1) * (buttonHeight + buttonSpacing))  -- Kırmızı buton, ana butonun yanında olacak
+    redButton.Text = "Kırmızı"
+    redButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    redButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    redButton.Font = Enum.Font.SourceSans
+    redButton.TextSize = 14
+    redButton.Parent = scrollFrame
+
+    -- Butonlar için işlevler
+    -- Ana butona tıklama: Araç, oyuncunun yanına ışınlanacak
+    button.MouseButton1Click:Connect(function()
+        local playerPosition = player.Character and player.Character.PrimaryPart.Position or player.CharacterAdded:Wait().PrimaryPart.Position
+        local targetRotation = CFrame.Angles(0, math.rad(0), 0)  -- Aracın yönü (bu örnekte batı yönü)
+
+        -- Işınlama işlevi
+        local function teleportVehicleToPlayer()
+            -- Aracın konumunu oyuncunun konumuna ayarlayın
+            vehicle:SetPrimaryPartCFrame(CFrame.new(playerPosition) * targetRotation)
+        end
+
+        -- Işınlamayı gerçekleştirin
+        teleportVehicleToPlayer()
+    end)
+
+    -- Kırmızı butona tıklama: Araç, -352, 7, 332 konumuna ışınlanacak
+    redButton.MouseButton1Click:Connect(function()
+        local redTargetPosition = Vector3.new(-352, 7, 332)  -- Kırmızı butonun hedef konumu
+        local targetRotation = CFrame.Angles(0, math.rad(0), 0)  -- Batı yönü
+
+        -- Işınlama işlevi
+        local function teleportVehicleToRedLocation()
+            -- Aracın konumunu kırmızı hedefe ayarlayın
+            vehicle:SetPrimaryPartCFrame(CFrame.new(redTargetPosition) * targetRotation)
+        end
+
+        -- Işınlamayı gerçekleştirin
+        teleportVehicleToRedLocation()
+    end)
+end
+
+-- Sürüklenebilir GUI işlevselliği ekleniyor
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragInput, dragStart, startPos
+
+container.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and not gameProcessed then
+        dragging = true
+        dragStart = input.Position
+        startPos = container.Position
+    end
+end)
+
+container.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        container.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+container.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)

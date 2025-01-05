@@ -9,10 +9,11 @@ screenGui.Name = "VehicleTeleportGUI"
 
 -- Ana container için bir Frame oluşturuyoruz (ScrollFrame içinde olacak)
 local container = Instance.new("Frame")
-container.Size = UDim2.new(0, 250, 0, 200)  -- Genişlik 250, yükseklik 200 (daha uzun)
+container.Size = UDim2.new(0, 250, 0, 200)  -- Genişlik 250, yükseklik 200
 container.Position = UDim2.new(1, -250, 0, 10)  -- Ekranın sağ üst köşesine yakın
-container.BackgroundTransparency = 0.5
-container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+container.BackgroundTransparency = 0.8
+container.BackgroundColor3 = Color3.fromRGB(30, 30, 30)  -- Koyu arka plan
+container.BorderSizePixel = 0
 container.Parent = screenGui
 
 -- ScrollFrame ekliyoruz (butonları sarmak için)
@@ -20,6 +21,7 @@ local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(1, 0, 1, 0)  -- Container içinde tüm alanı kaplasın
 scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)  -- İçeriğin boyutuna göre ayarlanacak
 scrollFrame.ScrollBarThickness = 5
+scrollFrame.BackgroundTransparency = 1  -- Şeffaf arka plan
 scrollFrame.Parent = container
 
 -- Araba listesi (workspace.Equipment içindeki araçlar)
@@ -44,20 +46,21 @@ for i, vehicle in ipairs(vehicles) do
     button.Size = UDim2.new(0, 180, 0, buttonHeight)
     button.Position = UDim2.new(0, 15, 0, (i - 1) * (buttonHeight + buttonSpacing))
     button.Text = vehicle.Name
-    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.SourceSans
-    button.TextSize = 14
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)  -- Koyu gri arka plan
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Beyaz yazı rengi
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 16
+    button.TextWrapped = true  -- Yazının taşmaması için sarmalayıcı
     button.Parent = scrollFrame
 
     -- Kırmızı buton (ışınlama işlemi)
     local redButton = Instance.new("TextButton")
     redButton.Size = UDim2.new(0, 40, 0, buttonHeight)
-    redButton.Position = UDim2.new(0, 200, 0, (i - 1) * (buttonHeight + buttonSpacing))  -- Kırmızı buton, ana butonun yanında olacak
+    redButton.Position = UDim2.new(0, 200, 0, (i - 1) * (buttonHeight + buttonSpacing))  -- Kırmızı buton, ana butonun yanında
     redButton.Text = "Kırmızı"
-    redButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    redButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Kırmızı arka plan
     redButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    redButton.Font = Enum.Font.SourceSans
+    redButton.Font = Enum.Font.GothamBold
     redButton.TextSize = 14
     redButton.Parent = scrollFrame
 

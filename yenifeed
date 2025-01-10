@@ -1,0 +1,37 @@
+local draggableObjectsFolder = workspace:WaitForChild("DraggableObjects")  -- 'DraggableObjects' içinde nesneleri almak için
+local animalFoodBoxNames = {}  -- AnimalFoodBox'ların isimlerini saklayacak bir tablo
+
+-- 'DraggableObjects' içindeki tüm nesneleri kontrol et
+for _, obj in ipairs(draggableObjectsFolder:GetChildren()) do
+    if obj.Name:match("AnimalFoodBox%d*") then  -- 'AnimalFoodBox' adını taşıyan nesneler
+        table.insert(animalFoodBoxNames, obj.Name)  -- İsimlerini tabloya ekle
+    end
+end
+
+-- Eğer en az bir tane AnimalFoodBox varsa
+if #animalFoodBoxNames > 0 then
+    -- Rastgele bir AnimalFoodBox ismi seç
+    local randomFoodBoxName = animalFoodBoxNames[math.random(1, #animalFoodBoxNames)]
+    local randomFoodBox = draggableObjectsFolder:WaitForChild(randomFoodBoxName)  -- Rastgele seçilen nesne
+
+    -- EVTRequestToCarry event'ini çalıştır
+    local args1 = {randomFoodBox}
+    local remoteStorage = game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE")
+    local requestToCarryRemote = remoteStorage:WaitForChild("EVTRequestToCarry")
+    requestToCarryRemote:FireServer(unpack(args1))
+
+    -- Feeder nesnelerini alır ve her biri için EVTFillFeeder event'ini tetikler
+    local feederFolder = workspace:WaitForChild("Buildings")  -- 'Buildings' içinde bulunan nesneleri almak için
+    local feeders = feederFolder:GetChildren()  -- Tüm 'Feeder' nesnelerini alır
+
+    -- Tüm 'Feeder' nesneleri üzerinde işlem yapmak
+    for _, feeder in ipairs(feeders) do
+        if feeder.Name == "Feeder" then  -- Sadece Feeder adındaki nesnelerle işlem yapar
+            local args2 = {feeder}  -- Her feeder için args dizisini oluşturur
+            local fillFeederRemote = remoteStorage:WaitForChild("EVTFillFeeder")
+            fillFeederRemote:FireServer(unpack(args2))  -- EVTFillFeeder event'ini tetikler
+        end
+    end
+else
+    warn("No AnimalFoodBox found in DraggableObjects.")
+end

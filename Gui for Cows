@@ -1,0 +1,99 @@
+-- Oyuncunun GUI'sine ScreenGui ekleyin
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ProductionGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Açma/Kapama Butonu
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.Text = "Show GUI"
+toggleButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180) -- Buton rengi
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Parent = screenGui
+
+-- Üretim Listeleme Paneli
+local productionFrame = Instance.new("Frame")
+productionFrame.Name = "ProductionFrame"
+productionFrame.Size = UDim2.new(0, 300, 0, 400)
+productionFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+productionFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Panel rengi
+productionFrame.BorderSizePixel = 2
+productionFrame.Visible = false
+productionFrame.Parent = screenGui
+
+-- Başlık
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Text = "Cow Production List"
+titleLabel.TextSize = 20
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Parent = productionFrame
+
+-- Listeleme Alanı
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "ScrollingFrame"
+scrollingFrame.Size = UDim2.new(1, -20, 1, -60)
+scrollingFrame.Position = UDim2.new(0, 10, 0, 50)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.ScrollBarThickness = 8
+scrollingFrame.Parent = productionFrame
+
+-- Üretim Listesi için Template
+local template = Instance.new("TextLabel")
+template.Size = UDim2.new(1, -10, 0, 30)
+template.TextSize = 16
+template.TextColor3 = Color3.new(1, 1, 1)
+template.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+template.BorderSizePixel = 0
+template.Visible = false
+template.Parent = scrollingFrame
+
+-- Üretim değerlerini GUI'ye ekleme fonksiyonu
+local function populateProductionList()
+    local animalsFolder = workspace:WaitForChild("Animals")
+    local totalHeight = 0
+
+    -- Tüm Cow modellerini bul ve üretim değerlerini ekle
+    for _, item in pairs(animalsFolder:GetChildren()) do
+        if item:IsA("Model") and item.Name:match("^Cow%d*$") then
+            local configurations = item:FindFirstChild("Configurations")
+            if configurations and configurations:FindFirstChild("Production") then
+                local productionValue = configurations.Production.Value
+
+                -- Yeni bir satır oluştur
+                local newLabel = template:Clone()
+                newLabel.Text = item.Name .. " Production: " .. productionValue
+                newLabel.Position = UDim2.new(0, 0, 0, totalHeight)
+                newLabel.Visible = true
+                newLabel.Parent = scrollingFrame
+
+                totalHeight = totalHeight + newLabel.Size.Y.Offset + 5
+            end
+        end
+    end
+
+    -- ScrollingFrame'in CanvasSize'ını güncelle
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+end
+
+-- GUI'yi aç/kapa
+toggleButton.MouseButton1Click:Connect(function()
+    productionFrame.Visible = not productionFrame.Visible
+    toggleButton.Text = productionFrame.Visible and "Hide GUI" or "Show GUI"
+
+    if productionFrame.Visible then
+        -- Listeyi yeniden oluştur
+        for _, child in pairs(scrollingFrame:GetChildren()) do
+            if child:IsA("TextLabel") and child ~= template then
+                child:Destroy()
+            end
+        end
+        populateProductionList()
+    end
+end)

@@ -1,0 +1,14 @@
+local equipmentFolder = workspace.Animals
+local cows = {}
+
+-- Tüm Cow'ları bul
+for _, item in pairs(equipmentFolder:GetChildren()) do
+    if item:IsA("Model") and item.Name == "Cow" then
+        table.insert(cows, item)
+    end
+end
+
+-- Cow modellerini numaralandır
+for i, cow in ipairs(cows) do
+    cow.Name = "Cow" .. i
+end

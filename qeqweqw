@@ -1,0 +1,27 @@
+-- Get all cows in the workspace
+local cows = workspace:WaitForChild("Animals"):GetChildren()
+
+-- Get all AutoWoodenBarn models in the Buildings folder
+local barns = workspace:WaitForChild("Buildings"):GetChildren()
+
+-- Filter only AutoWoodenBarn models
+local autoWoodenBarns = {}
+for _, barn in pairs(barns) do
+    if barn:IsA("Model") and barn.Name == "AutoWoodenBarn" then
+        table.insert(autoWoodenBarns, barn)
+    end
+end
+
+-- Loop through all cows with updated names (Cow1, Cow2, ..., Cow30)
+for i, cow in pairs(cows) do
+    if cow:IsA("Model") and cow.Name:match("^Cow%d+$") then
+        -- Create the argument list for the current cow
+        local args = {
+            [1] = { cow },  -- Pass the current cow
+            [2] = autoWoodenBarns[(i % #autoWoodenBarns) + 1]  -- Loop through barns in order
+        }
+
+        -- Fire the server event for each cow
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTHerdRequest"):FireServer(unpack(args))
+    end
+end

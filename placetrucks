@@ -1,58 +1,60 @@
--- Get all cows in the workspace
-local cows = workspace:WaitForChild("Animals"):GetChildren()
--- Get both AutoCraftsmanBarn objects
-local barns = workspace:WaitForChild("Buildings"):GetChildren()
+-- Define the truck positions and rotations
+local position1 = Vector3.new(-293, 6, 710)
+local position2 = Vector3.new(-439, 6, 673)
 
--- Ensure we have exactly two barns
-local autoCraftsmanBarns = {}
-for _, barn in pairs(barns) do
-    if barn:IsA("Model") and barn.Name == "AutoCraftsmanBarn" then
-        table.insert(autoCraftsmanBarns, barn)
-    end
-end
-
--- Check if there are two barns
-if #autoCraftsmanBarns ~= 2 then
-    warn("Expected exactly two AutoCraftsmanBarn models")
-    return
-end
-
--- Loop through all cows and send herd request
-for _, cow in pairs(cows) do
-    if cow:IsA("Model") and cow.Name == "Cow" then
-        -- Create the argument list for the current cow
-        local args = {
-            [1] = { cow }, -- Pass the current cow
-            [2] = autoCraftsmanBarns[(math.random(1, 2))] -- Randomly pick one barn
-        }
-
-        -- Fire the server event for each cow
-        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTHerdRequest"):FireServer(unpack(args))
-        
-        -- Add a slight delay before processing the next cow
-        wait(0.5)  -- Adjust the delay as needed
-    end
-end
-
--- Define the truck positions and rotation
-local firstTruckPosition = Vector3.new(-362, 6, 712)
-local secondTruckPosition = Vector3.new(-359, 6, 793)
 local rotation90Degrees = CFrame.Angles(0, math.rad(90), 0)  -- 90-degree rotation
+local rotation180Degrees = CFrame.Angles(0, math.rad(180), 0)  -- 180-degree rotation
 
 -- Get the trucks
-local firstTruck = workspace.Equipment.MediumLiquidTruck
-local secondTruck = workspace.Equipment:GetChildren()[20]  -- Assuming second truck is the 20th item
+local mediumLiquidTruck1 = workspace.Equipment:FindFirstChild("MediumLiquidTruck")
+local mediumLiquidTruck2 = workspace.Equipment:FindFirstChild("MediumLiquidTruck2")
 
 -- Function to teleport a vehicle
-local function teleportVehicle(vehicle, targetPosition)
-    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * rotation90Degrees)
+local function teleportVehicle(vehicle, targetPosition, rotation)
+    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * rotation)
 end
 
--- Teleport the first truck
-teleportVehicle(firstTruck, firstTruckPosition)
+-- Teleport the trucks if they exist
+if mediumLiquidTruck1 then
+    teleportVehicle(mediumLiquidTruck1, position1, rotation90Degrees)
+end
 
--- Add a delay before teleporting the second truck
-wait(1)  -- Adjust the delay as needed
+if mediumLiquidTruck2 then
+    teleportVehicle(mediumLiquidTruck2, position2, rotation180Degrees)
+end
 
--- Teleport the second truck
-teleportVehicle(secondTruck, secondTruckPosition)
+-- Define the args for entering the vehicle
+local args = {
+    [1] = mediumLiquidTruck2,
+    [2] = mediumLiquidTruck2:WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+}
+
+-- Invoke the FNCEnterEquipment remote to enter the truck
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+
+-- Function to simulate pressing the space key using VirtualInputManager
+local function simulateSpacePress()
+    local virtualInputManager = game:GetService("VirtualInputManager")
+    -- Simulate space key press
+    virtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+    wait(0.1) -- Small delay for the key press
+    virtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+end
+
+-- Wait for 0.5 seconds, then simulate space key press, and after that call the remote for the first truck
+wait(0.5)
+
+-- Simulate pressing the space key for the second truck (after the delay)
+simulateSpacePress()
+
+-- Wait a little before invoking the remote for the first truck
+wait(0.5)
+
+-- Define args for entering the first truck
+local args1 = {
+    [1] = mediumLiquidTruck1,
+    [2] = mediumLiquidTruck1:WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+}
+
+-- Invoke the FNCEnterEquipment remote for the first truck
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args1))

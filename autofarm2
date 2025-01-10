@@ -1,0 +1,71 @@
+-- Define positions for ChallengerMT9 and HorschJoker
+local positions = {
+    {ChallengerMT9 = Vector3.new(-125, 2, 309), HorschJoker = Vector3.new(-127, 2, 290)},
+    {ChallengerMT9 = Vector3.new(-97, 2, 307), HorschJoker = Vector3.new(-97, 2, 282)},
+    {ChallengerMT9 = Vector3.new(-67, 2, 306), HorschJoker = Vector3.new(-67, 2, 278)},
+    {ChallengerMT9 = Vector3.new(-36, 2, 297), HorschJoker = Vector3.new(-35, 2, 278)},
+    {ChallengerMT9 = Vector3.new(-6, 2, 336), HorschJoker = Vector3.new(-6, 2, 308)},
+    {ChallengerMT9 = Vector3.new(24, 2, 340), HorschJoker = Vector3.new(24, 2, 313)},
+    {ChallengerMT9 = Vector3.new(47, 2, 348), HorschJoker = Vector3.new(46, 2, 321)},
+    {ChallengerMT9 = Vector3.new(75, 2, 345), HorschJoker = Vector3.new(74, 2, 316)},
+    {ChallengerMT9 = Vector3.new(104, 2, 350), HorschJoker = Vector3.new(104, 2, 321)},
+    {ChallengerMT9 = Vector3.new(132, 2, 338), HorschJoker = Vector3.new(132, 2, 310)}
+}
+
+-- Get the trucks
+local challengerMT9 = workspace.Equipment.ChallengerMT9
+local horschJoker = workspace.Equipment.HorschJoker
+
+-- Get VirtualInputManager service
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Function to teleport a vehicle with rotation
+local function teleportVehicle(vehicle, targetPosition)
+    local rotation180Degrees = CFrame.Angles(0, math.rad(180), 0)  -- 180-degree rotation
+    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * rotation180Degrees)
+end
+
+-- Function to simulate key press (W or Space)
+local function simulateKeyPress(keyCode, duration)
+    VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+    wait(duration)
+    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+end
+
+-- Function to invoke the remote
+local function invokeRemote()
+    local args = {
+        [1] = workspace:WaitForChild("Equipment"):WaitForChild("ChallengerMT9"),
+        [2] = workspace:WaitForChild("Equipment"):WaitForChild("ChallengerMT9"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+end
+
+-- Teleport and execute tasks step-by-step for each position
+for _, positionPair in ipairs(positions) do
+    -- Step 1: Teleport HorschJoker and ChallengerMT9 to their positions with 180 degree rotation
+    teleportVehicle(horschJoker, positionPair.HorschJoker)
+    teleportVehicle(challengerMT9, positionPair.ChallengerMT9)
+
+    -- Step 2: Wait for 15 seconds while holding down the W key
+    simulateKeyPress(Enum.KeyCode.W, 15)
+
+    -- Step 3: After 15 seconds, simulate Space key press
+    simulateKeyPress(Enum.KeyCode.Space, 1)
+
+    -- Step 4: Wait for HorschJoker and ChallengerMT9 to teleport (0.1 seconds before next teleport)
+    wait(0.1)
+
+    -- Step 5: After Space, teleport both vehicles to the new positions
+    teleportVehicle(horschJoker, positionPair.HorschJoker)
+    teleportVehicle(challengerMT9, positionPair.ChallengerMT9)
+
+    -- Step 6: Wait 1.5 seconds after teleportation before triggering remote
+    wait(1.5)
+
+    -- Step 7: Invoke the remote to perform the desired action
+    invokeRemote()
+
+    -- Step 8: Wait for 0.1 seconds before starting the next loop
+    wait(0.1)
+end

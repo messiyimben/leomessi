@@ -1,0 +1,14 @@
+local equipmentFolder = workspace.Equipment
+local trucks = {}
+
+-- Tüm MediumLiquidTruck'ları bul
+for _, item in pairs(equipmentFolder:GetChildren()) do
+    if item:IsA("Model") and item.Name == "MediumLiquidTruck" then
+        table.insert(trucks, item)
+    end
+end
+
+-- Eğer 2'den fazla MediumLiquidTruck varsa, ikincisini yeniden adlandır
+if #trucks == 2 then
+    trucks[2].Name = "MediumLiquidTruck2"
+end

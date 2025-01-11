@@ -1,0 +1,13 @@
+- Koordinatlar
+local position = Vector3.new(-7, 6, 794)
+
+-- Duvar parçası oluştur
+local wall = Instance.new("Part")
+wall.Size = Vector3.new(20, 20, 12)  -- Duvarın boyutu
+wall.Position = position
+wall.Anchored = true
+wall.BrickColor = BrickColor.new("Bright red")  -- Duvarın rengi
+wall.Parent = workspace
+
+-- Duvarı 180 derece döndür
+wall.CFrame = CFrame.new(position) * CFrame.Angles(0, math.rad(180), 0)

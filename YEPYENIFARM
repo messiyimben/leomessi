@@ -1,0 +1,93 @@
+-- Define positions for JDS790
+local positions = {
+    {JDS790 = Vector3.new(-125, 2, 309)},
+    {JDS790 = Vector3.new(-97, 2, 307)},
+    {JDS790 = Vector3.new(-67, 2, 306)},
+    {JDS790 = Vector3.new(-36, 2, 297)},
+    {JDS790 = Vector3.new(-6, 2, 336)},
+    {JDS790 = Vector3.new(24, 2, 340)},
+    {JDS790 = Vector3.new(47, 2, 348)},
+    {JDS790 = Vector3.new(75, 2, 345)},
+    {JDS790 = Vector3.new(104, 2, 350)},
+    {JDS790 = Vector3.new(132, 2, 338)}
+}
+
+-- Get the JDS790 vehicle
+local jds790 = workspace.Equipment.JDS790
+
+-- Get VirtualInputManager service
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Create a flag for pausing the loop
+local isPaused = false
+
+-- Create a GUI button to pause/resume the process
+local screenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+local pauseButton = Instance.new("TextButton", screenGui)
+pauseButton.Size = UDim2.new(0, 200, 0, 50)
+pauseButton.Position = UDim2.new(0.5, -100, 0, 20)
+pauseButton.Text = "Pause"
+
+-- Function to teleport the vehicle with rotation
+local function teleportVehicle(vehicle, targetPosition)
+    local rotation180Degrees = CFrame.Angles(0, math.rad(180), 0)  -- 180-degree rotation
+    vehicle:SetPrimaryPartCFrame(CFrame.new(targetPosition) * rotation180Degrees)
+end
+
+-- Function to simulate key press (W or Space)
+local function simulateKeyPress(keyCode, duration)
+    VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+    wait(duration)
+    VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+end
+
+-- Function to invoke the remote
+local function invokeRemote()
+    local args = {
+        [1] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"),
+        [2] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+end
+
+-- Function to handle pausing and resuming
+pauseButton.MouseButton1Click:Connect(function()
+    isPaused = not isPaused  -- Toggle the pause flag
+    if isPaused then
+        pauseButton.Text = "Resume"  -- Change the button text to "Resume"
+    else
+        pauseButton.Text = "Pause"  -- Change the button text to "Pause"
+    end
+end)
+
+-- Teleport and execute tasks step-by-step for each position
+for _, position in ipairs(positions) do
+    -- Step 1: Wait if paused
+    while isPaused do
+        wait(0.1)  -- Wait until it's resumed
+    end
+
+    -- Step 2: Teleport JDS790 to its position with 180 degree rotation
+    teleportVehicle(jds790, position.JDS790)
+
+    -- Step 3: Wait for 15 seconds while holding down the W key
+    simulateKeyPress(Enum.KeyCode.W, 15)
+
+    -- Step 4: After 15 seconds, simulate Space key press
+    simulateKeyPress(Enum.KeyCode.Space, 1)
+
+    -- Step 5: Wait for JDS790 to teleport (0.1 seconds before next teleport)
+    wait(0.1)
+
+    -- Step 6: After Space, teleport JDS790 to the new position
+    teleportVehicle(jds790, position.JDS790)
+
+    -- Step 7: Wait 1.5 seconds after teleportation before triggering remote
+    wait(1.5)
+
+    -- Step 8: Invoke the remote to perform the desired action
+    invokeRemote()
+
+    -- Step 9: Wait for 0.1 seconds before starting the next loop
+    wait(0.1)
+end

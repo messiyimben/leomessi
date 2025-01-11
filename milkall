@@ -1,14 +1,26 @@
-local equipmentFolder = workspace.Animals
-local cows = {}
+-- Animals klasöründeki tüm inekler için işlem yap
+local animalsFolder = workspace:WaitForChild("Animals")
+local remoteEvent = game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTCollectAnimalProduction")
 
--- Tüm Cow'ları bul
-for _, item in pairs(equipmentFolder:GetChildren()) do
-    if item:IsA("Model") and item.Name == "Cow" then
-        table.insert(cows, item)
+-- Cow1'den Cow30'a kadar tüm inekleri işlemek
+for i = 1, 30 do
+    local cowName = "Cow" .. i
+    local cow = animalsFolder:FindFirstChild(cowName)
+
+    if cow and cow:IsA("Model") then
+        -- Remote Event için argümanları oluştur
+        local args = {
+            [1] = "Milk",
+            [2] = cow
+        }
+
+        -- Remote Event'i çalıştır
+        remoteEvent:FireServer(unpack(args))
+
+        -- Debugging için çıktı
+        print("Milk event fired for:", cowName)
+    else
+        -- Hata ayıklama çıktısı
+        warn("Cow not found or invalid:", cowName)
     end
-end
-
--- Cow modellerini numaralandır
-for i, cow in ipairs(cows) do
-    cow.Name = "Cow" .. i
 end

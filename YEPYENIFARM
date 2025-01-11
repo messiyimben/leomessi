@@ -71,7 +71,7 @@ for _, position in ipairs(positions) do
     teleportVehicle(jds790, position.JDS790)
 
     -- Step 3: Wait for 15 seconds while holding down the W key
-    simulateKeyPress(Enum.KeyCode.W, 4)
+    simulateKeyPress(Enum.KeyCode.W, 5)
 
     -- Step 4: After 15 seconds, simulate Space key press
     simulateKeyPress(Enum.KeyCode.Space, 1)

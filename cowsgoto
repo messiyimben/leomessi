@@ -1,5 +1,6 @@
--- Get all cows in the workspace
+- Get all cows in the workspace
 local cows = workspace:WaitForChild("Animals"):GetChildren()
+
 -- Get all AutoWoodenBarn models in the Buildings folder
 local barns = workspace:WaitForChild("Buildings"):GetChildren()
 
@@ -11,13 +12,13 @@ for _, barn in pairs(barns) do
     end
 end
 
--- Loop through all cows
+-- Loop through all cows with updated names (Cow1, Cow2, ..., Cow30)
 for i, cow in pairs(cows) do
-    if cow:IsA("Model") and cow.Name == "Cow" then
+    if cow:IsA("Model") and cow.Name:match("^Cow%d+$") then
         -- Create the argument list for the current cow
         local args = {
-            [1] = { cow }, -- Pass the current cow
-            [2] = autoWoodenBarns[(i % #autoWoodenBarns) + 1] -- Loop through barns in order
+            [1] = { cow },  -- Pass the current cow
+            [2] = autoWoodenBarns[(i % #autoWoodenBarns) + 1]  -- Loop through barns in order
         }
 
         -- Fire the server event for each cow

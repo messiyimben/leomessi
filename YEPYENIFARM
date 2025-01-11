@@ -4,12 +4,9 @@ local positions = {
     {JDS790 = Vector3.new(-97, 2, 307)},
     {JDS790 = Vector3.new(-67, 2, 306)},
     {JDS790 = Vector3.new(-36, 2, 297)},
-    {JDS790 = Vector3.new(-6, 2, 336)},
-    {JDS790 = Vector3.new(24, 2, 340)},
-    {JDS790 = Vector3.new(47, 2, 348)},
-    {JDS790 = Vector3.new(75, 2, 345)},
-    {JDS790 = Vector3.new(104, 2, 350)},
-    {JDS790 = Vector3.new(132, 2, 338)}
+    {JDS790 = Vector3.new(-6, 6, 314)},
+    {JDS790 = Vector3.new(44, 6, 305)},
+    {JDS790 = Vector3.new(104, 6, 311)}
 }
 
 -- Get the JDS790 vehicle

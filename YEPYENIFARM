@@ -1,7 +1,3 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/newfarm1"))()
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/farmicinlazim"))()
-
 -- Define positions for JDS790
 local positions = {
     {JDS790 = Vector3.new(-125, 2, 309)},

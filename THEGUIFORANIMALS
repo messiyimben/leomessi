@@ -1,0 +1,133 @@
+-- Yerel oyuncuyu al
+local player = game.Players.LocalPlayer
+
+-- GUI oluşturma
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ProductionGUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Açma/Kapama Butonu
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.Text = "Show GUI"
+toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Parent = screenGui
+
+-- Ana Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+-- Başlık
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.Text = "Cow Production"
+titleLabel.TextSize = 20
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Parent = mainFrame
+
+-- Listeleme Alanı
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Name = "ScrollingFrame"
+scrollingFrame.Size = UDim2.new(1, -20, 0.7, -60)
+scrollingFrame.Position = UDim2.new(0, 10, 0, 50)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.ScrollBarThickness = 8
+scrollingFrame.Parent = mainFrame
+
+-- Liste Elemanları için Template
+local template = Instance.new("TextLabel")
+template.Size = UDim2.new(1, -10, 0, 30)
+template.TextSize = 16
+template.TextColor3 = Color3.new(1, 1, 1)
+template.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+template.BorderSizePixel = 0
+template.Visible = false
+template.Parent = scrollingFrame
+
+-- Butonlar için Frame
+local buttonFrame = Instance.new("Frame")
+buttonFrame.Name = "ButtonFrame"
+buttonFrame.Size = UDim2.new(1, 0, 0.3, 0)
+buttonFrame.Position = UDim2.new(0, 0, 0.7, 0)
+buttonFrame.BackgroundTransparency = 1
+buttonFrame.Parent = mainFrame
+
+-- Butonları ekleme
+local function createButton(name, text, position, url)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(0.4, 0, 0.3, 0)
+    button.Position = position
+    button.Text = text
+    button.TextSize = 14  -- Daha küçük metin boyutu
+    button.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Parent = buttonFrame
+    button.MouseButton1Click:Connect(function()
+        local success, errorMessage = pcall(function()
+            loadstring(game:HttpGet(url))()
+        end)
+        if not success then
+            warn("Remote yüklenirken hata oluştu: " .. errorMessage)
+        end
+    end)
+end
+
+-- Butonları tanımla
+createButton("CowsGoto", "Cows Goto", UDim2.new(0.05, 0, 0.1, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/cowsgoto")
+createButton("Gates", "Gates", UDim2.new(0.55, 0, 0.1, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/gates")
+createButton("PlaceTruck", "Place Truck", UDim2.new(0.05, 0, 0.5, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/placetrucks")
+createButton("MilkAll", "Milk All", UDim2.new(0.55, 0, 0.5, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/milkall")
+createButton("AllMilk", "All Milk", UDim2.new(0.05, 0, 0.9, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/tumsutler")  -- All Milk butonu
+createButton("AutoFeed", "Auto Feed", UDim2.new(0.55, 0, 0.9, 0), "https://raw.githubusercontent.com/messiyimben/leomessi/refs/heads/main/yenifeed")  -- Auto Feed butonu
+
+-- Üretim değerlerini GUI'ye ekleme fonksiyonu
+local function populateProductionList()
+    local animalsFolder = workspace:WaitForChild("Animals")
+    local totalHeight = 0
+
+    for _, item in pairs(animalsFolder:GetChildren()) do
+        if item:IsA("Model") and item.Name:match("^Cow%d*$") then
+            local configurations = item:FindFirstChild("Configurations")
+            if configurations and configurations:FindFirstChild("Production") then
+                local productionValue = configurations.Production.Value
+
+                local newLabel = template:Clone()
+                newLabel.Text = item.Name .. " Production: " .. productionValue
+                newLabel.Position = UDim2.new(0, 0, 0, totalHeight)
+                newLabel.Visible = true
+                newLabel.Parent = scrollingFrame
+
+                totalHeight = totalHeight + newLabel.Size.Y.Offset + 5
+            end
+        end
+    end
+
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+end
+
+-- GUI Açma/Kapama
+toggleButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+    toggleButton.Text = mainFrame.Visible and "Hide GUI" or "Show GUI"
+
+    if mainFrame.Visible then
+        for _, child in pairs(scrollingFrame:GetChildren()) do
+            if child:IsA("TextLabel") and child ~= template then
+                child:Destroy()
+            end
+        end
+        populateProductionList()
+    end
+end)

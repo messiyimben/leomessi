@@ -1,0 +1,6 @@
+local args = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"):WaitForChild("Components"):WaitForChild("HarvesterPipe"),
+    [2] = workspace:WaitForChild("Equipment"):WaitForChild("CH900")
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTHarvesterPipeDump"):FireServer(unpack(args))

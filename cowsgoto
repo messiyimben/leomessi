@@ -1,4 +1,4 @@
-- Get all cows in the workspace
+--Get all cows in the workspace
 local cows = workspace:WaitForChild("Animals"):GetChildren()
 
 -- Get all AutoWoodenBarn models in the Buildings folder

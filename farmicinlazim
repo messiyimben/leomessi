@@ -1,0 +1,11 @@
+local args = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("JDS790"):WaitForChild("Components"):WaitForChild("HarvesterPipe"),
+    [2] = workspace:WaitForChild("Equipment"):WaitForChild("CH900")
+}
+
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTHarvesterPipeDump")
+
+while true do
+    remote:FireServer(unpack(args))
+    wait(0.01) -- 0.01 saniye bekleme
+end

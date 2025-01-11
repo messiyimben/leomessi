@@ -28,3 +28,11 @@ local args = {
 }
 
 game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
+
+-- Son olarak ikinci remote tetikleniyor
+local sellArgs = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"),
+    [2] = workspace:WaitForChild("MainDropOffs"):WaitForChild("DropOffs"):WaitForChild("MainDropOff")
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("EVTSellAtStore"):FireServer(unpack(sellArgs))

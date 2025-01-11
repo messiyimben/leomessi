@@ -1,37 +1,30 @@
-local draggableObjectsFolder = workspace:WaitForChild("DraggableObjects")  -- 'DraggableObjects' içinde nesneleri almak için
-local animalFoodBoxNames = {}  -- AnimalFoodBox'ların isimlerini saklayacak bir tablo
+-- İlk remote tetikleniyor
+local hitchArgs = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Components"):WaitForChild("Hitchable"),
+    [2] = workspace:WaitForChild("Equipment"):WaitForChild("CH900"):WaitForChild("Chassis"):WaitForChild("HitchableSocket")
+}
 
--- 'DraggableObjects' içindeki tüm nesneleri kontrol et
-for _, obj in ipairs(draggableObjectsFolder:GetChildren()) do
-    if obj.Name:match("AnimalFoodBox%d*") then  -- 'AnimalFoodBox' adını taşıyan nesneler
-        table.insert(animalFoodBoxNames, obj.Name)  -- İsimlerini tabloya ekle
-    end
-end
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCAttemptHitch"):InvokeServer(unpack(hitchArgs))
 
--- Eğer en az bir tane AnimalFoodBox varsa
-if #animalFoodBoxNames > 0 then
-    -- Rastgele bir AnimalFoodBox ismi seç
-    local randomFoodBoxName = animalFoodBoxNames[math.random(1, #animalFoodBoxNames)]
-    local randomFoodBox = draggableObjectsFolder:WaitForChild(randomFoodBoxName)  -- Rastgele seçilen nesne
+-- Modelleri al
+local r1500 = workspace.Equipment.R1500
+local ch900 = workspace.Equipment.CH900
 
-    -- EVTRequestToCarry event'ini çalıştır
-    local args1 = {randomFoodBox}
-    local remoteStorage = game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE")
-    local requestToCarryRemote = remoteStorage:WaitForChild("EVTRequestToCarry")
-    requestToCarryRemote:FireServer(unpack(args1))
+-- Işınlanma pozisyonları
+local r1500Position = Vector3.new(-595, 6, 337)
+local ch900Position = Vector3.new(-557, 6, 335)
 
-    -- Feeder nesnelerini alır ve her biri için EVTFillFeeder event'ini tetikler
-    local feederFolder = workspace:WaitForChild("Buildings")  -- 'Buildings' içinde bulunan nesneleri almak için
-    local feeders = feederFolder:GetChildren()  -- Tüm 'Feeder' nesnelerini alır
+-- Rotasyon ayarları (180 derece)
+local rotation = CFrame.Angles(0, math.rad(180), 0)
 
-    -- Tüm 'Feeder' nesneleri üzerinde işlem yapmak
-    for _, feeder in ipairs(feeders) do
-        if feeder.Name == "Feeder" then  -- Sadece Feeder adındaki nesnelerle işlem yapar
-            local args2 = {feeder}  -- Her feeder için args dizisini oluşturur
-            local fillFeederRemote = remoteStorage:WaitForChild("EVTFillFeeder")
-            fillFeederRemote:FireServer(unpack(args2))  -- EVTFillFeeder event'ini tetikler
-        end
-    end
-else
-    warn("No AnimalFoodBox found in DraggableObjects.")
-end
+-- Işınlama işlemi
+r1500:SetPrimaryPartCFrame(CFrame.new(r1500Position) * rotation)
+ch900:SetPrimaryPartCFrame(CFrame.new(ch900Position) * rotation)
+
+-- Remote tetikleme
+local args = {
+    [1] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"),
+    [2] = workspace:WaitForChild("Equipment"):WaitForChild("R1500"):WaitForChild("Chassis"):WaitForChild("Seats"):WaitForChild("DriveSeat")
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("_REMOTE_STORAGE"):WaitForChild("FNCEnterEquipment"):InvokeServer(unpack(args))
